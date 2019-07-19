@@ -3,31 +3,35 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameController : MonoBehaviour
-{
-    public enum MoveDirection
+using TetrisGameEnums;
+
+namespace TetrisGameEnums
+{    public enum MoveDirection
     {
         Left,
         Right,
         Down
     }
 
-    enum CollisionTarget
+    public enum CollisionTarget
     {
         None,
-        BoardLeft,
-        BoardRight,
-        BoardDown,
+        GridLeft,
+        GridRight,
+        GridDown,
         Mino
     }
+}
 
+public class GameController : MonoBehaviour
+{
     private static GameController instance;
 
     private AudioSource audioSource;
     private List<GameObject> spawnedTetrominos = new List<GameObject>();
     private GameObject currentTetromino, nextTetromino;
-    private const int boardWidth = 10, boardHeight = 20;
-    private Transform[,] board = new Transform[boardHeight, boardWidth];
+    public GameGrid gameGrid;
+
     private int score = 0;
 
     Coroutine tetrominoMoveDownCoroutine = null;
@@ -50,6 +54,8 @@ public class GameController : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         StartNewGame();
     }
+
+    public Tetromino GetCurrTetromino() { return currentTetromino.GetComponent<Tetromino>(); }
 
     IEnumerator TetrominoMoveDown()
     {
@@ -74,63 +80,20 @@ public class GameController : MonoBehaviour
         }
     }
 
-    void UpdateBoard()
-    {
-        Tetromino tetrominoScript = currentTetromino.GetComponent<Tetromino>();
-        GameObject[] minos = tetrominoScript.minos;
-        for (int y = 0; y < boardHeight; y++)
-        {
-            for (int x = 0; x < boardWidth; x++)
-            {
-                if (board[y, x] != null && tetrominoScript.IsParentOf(board[y, x].gameObject))
-                    board[y, x] = null;
-            }
-        }
-        
-        foreach (GameObject mino in minos)
-        {
-            Vector3 pos = Round(mino.transform.position);
-            // check the height.
-            if (pos.y < boardHeight)
-                board[(int)pos.y, (int)pos.x] = mino.transform;
-        }
-    }
-
-    CollisionTarget CheckHasOverlapAtPos(Vector2 deltaPos)
-    {
-        Vector3 delta = new Vector3(deltaPos.x, deltaPos.y, 0.0f);
-        GameObject[] minos = currentTetromino.GetComponent<Tetromino>().minos;
-        foreach (GameObject mino in minos)
-        {
-            Vector3 newPos = mino.transform.position + delta;
-            if (newPos.x < 0) // Checking board out of bounce.
-                return CollisionTarget.BoardLeft;
-            else if (newPos.x >= boardWidth)
-                return CollisionTarget.BoardRight;
-            else if (newPos.y < 0)
-                return CollisionTarget.BoardDown;
-            else if ((int)newPos.y < boardHeight && board[(int)newPos.y, (int)newPos.x] != null
-                && board[(int)newPos.y, (int)newPos.x].parent != mino.transform.parent) // Check if not null and not the same mino.
-                return CollisionTarget.Mino;
-        }
-
-        return CollisionTarget.None;
-    }
-
     void HandleTetrominoOverlap()
     {
         while (true)
         {
-            CollisionTarget overlapedObject = CheckHasOverlapAtPos(Vector2.zero);
+            CollisionTarget overlapedObject = gameGrid.CheckHasOverlapAtPos(currentTetromino.GetComponent<Tetromino>(), Vector2.zero);
             if (overlapedObject == CollisionTarget.None)
                 return;
 
             switch (overlapedObject)
             {
-                case CollisionTarget.BoardLeft:
+                case CollisionTarget.GridLeft:
                     currentTetromino.transform.position += new Vector3(1.0f, 0.0f, 0.0f);
                     break;
-                case CollisionTarget.BoardRight:
+                case CollisionTarget.GridRight:
                     currentTetromino.transform.position += new Vector3(-1.0f, 0.0f, 0.0f);
                     break;
                 case CollisionTarget.Mino:
@@ -138,65 +101,6 @@ public class GameController : MonoBehaviour
                     break;
             }
         }
-    }
-
-    bool IsFullRowAt(int y)
-    {
-        for (int x = 0; x < boardWidth; x++)
-        {
-            if (board[y, x] == null)
-                return false;
-        }
-
-        return true;
-    }
-
-    void MoveRowsDownFrom(int y)
-    {
-        Tetromino tetrominoScript = currentTetromino.GetComponent<Tetromino>();
-        for (int i = y; i < boardHeight; i++)
-        {
-            for (int x = 0; x < boardWidth; x++)
-            {
-                // Checking for null and ignoring current falling tetromino.
-                if (board[i, x] == null || tetrominoScript.IsParentOf(board[i, x].gameObject))
-                    continue;
-
-                board[i - 1, x] = board[i, x];
-                board[i - 1, x].position += new Vector3(0.0f, -1.0f, 0.0f);
-                board[i, x] = null;
-            }
-        }
-    }
-
-    void RemoveRow(int y)
-    {
-        for (int x = 0; x < boardWidth; x++)
-        {
-            Destroy(board[y, x].gameObject);
-            board[y, x] = null;
-        }
-
-        MoveRowsDownFrom(y + 1);
-    }
-
-    bool CheckForFullRows()
-    {
-        int numOfFullRows = 0;
-        for (int y = 0; y < boardHeight; y++)
-        {
-            if (IsFullRowAt(y))
-            {                
-                RemoveRow(y--);
-                numOfFullRows++;
-            }
-        }
-        if (numOfFullRows != 0)
-        {
-            PlayLineClearedSound(numOfFullRows);
-            return true;
-        }
-        return false;
     }
 
     void PlayLineClearedSound(int numOfClearedLines)
@@ -216,43 +120,27 @@ public class GameController : MonoBehaviour
         }
     }
 
-    bool IsTetrominoAboveBoard()
-    {
-        GameObject[] minos = currentTetromino.GetComponent<Tetromino>().minos;
-        foreach (GameObject mino in minos)
-        {
-            if (mino.transform.position.y >= boardHeight)
-                return true;
-        }
-
-        return false;
-    }
-
-    Vector3 GetSpawnPos(bool isCurrentTetromino = true)
-    {
-        return isCurrentTetromino ? new Vector3(boardWidth / 2, boardHeight, 0) : new Vector3(15.0f, 10.0f, 0.0f);
-    }
-
     void SpawnNextTetromino()
     {
         int index;
         if (!currentTetromino)
         {
             index = Random.Range(0, tetrominoPrefabs.Length);
-            currentTetromino = Instantiate(tetrominoPrefabs[index], GetSpawnPos(), Quaternion.identity);
+            currentTetromino = Instantiate(tetrominoPrefabs[index], gameGrid.GetTetrominoSpawnPos(), Quaternion.identity);
         }
         else
         {
             currentTetromino = nextTetromino;
-            currentTetromino.transform.position = GetSpawnPos();            
+            currentTetromino.transform.position = gameGrid.GetTetrominoSpawnPos();            
         }
         spawnedTetrominos.Add(currentTetromino);
+        gameGrid.SetCurrentTetromin(currentTetromino.GetComponent<Tetromino>());
 
         index = Random.Range(0, tetrominoPrefabs.Length);
-        nextTetromino = Instantiate(tetrominoPrefabs[index], GetSpawnPos(false), Quaternion.identity);
+        nextTetromino = Instantiate(tetrominoPrefabs[index], gameGrid.GetTetrominoSpawnPos(false), Quaternion.identity);
         
         HandleTetrominoOverlap();
-        UpdateBoard();
+        gameGrid.UpdateGrid();
 
         isDownKeyPressed = false;
     }
@@ -273,18 +161,19 @@ public class GameController : MonoBehaviour
                 break;
         }
 
-        if (CheckHasOverlapAtPos(deltaPos) != CollisionTarget.None)
+        if (gameGrid.CheckHasOverlapAtPos(currentTetromino.GetComponent<Tetromino>(), deltaPos) != CollisionTarget.None)
         {
             // Check if tetromino hits the ground.
             if (direction == MoveDirection.Down)
             {
                 SpawnNextTetromino();
-                bool haveFullRows = CheckForFullRows();
-                // If haven't Full Rows then play tetromino land sound.
-                if (!haveFullRows)
+                int numOfFullRows = gameGrid.CheckForFullRows();                
+                if (numOfFullRows == 0) // If haven't Full Rows then play tetromino land sound.
                     currentTetromino.GetComponent<Tetromino>().OnLanded();
+                else                    // Else play line clear sound.
+                    PlayLineClearedSound(numOfFullRows);
 
-                if (IsTetrominoAboveBoard())
+                if (gameGrid.IsTetrominoAboveBoard())
                     GameOver();
 
                 ClearEmptyTetrominos(); // After deleting minos there may be empty tetrominos.
@@ -294,7 +183,7 @@ public class GameController : MonoBehaviour
         }
 
         currentTetromino.GetComponent<Tetromino>().Move(deltaPos);
-        UpdateBoard();
+        gameGrid.UpdateGrid();
     }
 
     public void RotateTetromino()
@@ -302,7 +191,7 @@ public class GameController : MonoBehaviour
         currentTetromino.GetComponent<Tetromino>().Rotate();
         HandleTetrominoOverlap();
 
-        UpdateBoard();
+        gameGrid.UpdateGrid();
     }
 
     public void StartNewGame()
@@ -311,7 +200,7 @@ public class GameController : MonoBehaviour
         gameOver_UIPanel.SetActive(false);
         audioSource.Play();
 
-        board = new Transform[boardHeight, boardWidth];
+        gameGrid.InitGrid();
         for (int i = 0; i < spawnedTetrominos.Count; i++)
             Destroy(spawnedTetrominos[i]);
         spawnedTetrominos.Clear();
@@ -358,7 +247,7 @@ public class GameController : MonoBehaviour
 
     public bool IsGameOver() { return isGameOver; }
 
-    Vector3 Round(Vector3 vec)
+    public static Vector3 Round(Vector3 vec)
     {
         return new Vector3((int)(vec.x), (int)(vec.y), (int)(vec.z));
     }

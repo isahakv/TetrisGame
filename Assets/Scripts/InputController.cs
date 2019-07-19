@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using TetrisGameEnums;
+
 public class InputController : MonoBehaviour
 {
     // public float continousMoveTimer = 0.0f;
@@ -45,7 +47,7 @@ public class InputController : MonoBehaviour
     {
         while (true)
         {
-            GameController.GetInstance().MoveTetromino(isLeft ? GameController.MoveDirection.Left : GameController.MoveDirection.Right);
+            GameController.GetInstance().MoveTetromino(isLeft ? MoveDirection.Left : MoveDirection.Right);
 
             yield return new WaitForSeconds(continousMoveTime);
         }
