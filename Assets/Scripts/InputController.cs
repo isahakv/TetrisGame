@@ -15,7 +15,7 @@ public class InputController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!GameController.GetInstance().IsGameOver())
+        if (!GameManager.GetInstance().IsGameOver())
             GetPlayerInput();
     }
 
@@ -35,11 +35,11 @@ public class InputController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.W)) // Rotating Tetromino.
         {
-            GameController.GetInstance().RotateTetromino();
+            TetrisGame.GetInstance().RotateTetromino();
         }
         else if (Input.GetKeyDown(KeyCode.S)) // Moving Tetromino to down.
         {
-            GameController.GetInstance().DownKeyPressed();
+            TetrisGame.GetInstance().DownKeyPressed();
         }
     }
 
@@ -47,7 +47,7 @@ public class InputController : MonoBehaviour
     {
         while (true)
         {
-            GameController.GetInstance().MoveTetromino(isLeft ? MoveDirection.Left : MoveDirection.Right);
+            TetrisGame.GetInstance().MoveTetromino(isLeft ? MoveDirection.Left : MoveDirection.Right);
 
             yield return new WaitForSeconds(continousMoveTime);
         }

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 using TetrisGameEnums;
 
@@ -23,36 +22,27 @@ namespace TetrisGameEnums
     }
 }
 
-public class GameController : MonoBehaviour
+public class TetrisGame : MonoBehaviour
 {
-    private static GameController instance;
+    private static TetrisGame instance;
 
     private AudioSource audioSource;
     private List<GameObject> spawnedTetrominos = new List<GameObject>();
     private GameObject currentTetromino, nextTetromino;
     public GameGrid gameGrid;
-
-    private int score = 0;
-
+    
     Coroutine tetrominoMoveDownCoroutine = null;
     bool isDownKeyPressed = false;
-    bool isGameOver = false;
     
     public float moveDownTime = 1.0f, moveDownPressedTime = 0.05f;
     public GameObject[] tetrominoPrefabs;
-    public GameObject gameOver_UIPanel;
 
     public AudioClip gameOverSound, lineClearSingleSound, lineClearDoubleSound, lineClearTripleSound;
 
     void Awake()
     {
         instance = this;
-    }
-
-    void Start()
-    {
         audioSource = GetComponent<AudioSource>();
-        StartNewGame();
     }
 
     public Tetromino GetCurrTetromino() { return currentTetromino.GetComponent<Tetromino>(); }
@@ -84,7 +74,7 @@ public class GameController : MonoBehaviour
     {
         while (true)
         {
-            CollisionTarget overlapedObject = gameGrid.CheckHasOverlapAtPos(currentTetromino.GetComponent<Tetromino>(), Vector2.zero);
+            CollisionTarget overlapedObject = gameGrid.CheckHasOverlapAtPos(Vector2.zero);
             if (overlapedObject == CollisionTarget.None)
                 return;
 
@@ -96,6 +86,7 @@ public class GameController : MonoBehaviour
                 case CollisionTarget.GridRight:
                     currentTetromino.transform.position += new Vector3(-1.0f, 0.0f, 0.0f);
                     break;
+                case CollisionTarget.GridDown:
                 case CollisionTarget.Mino:
                     currentTetromino.transform.position += new Vector3(0.0f, 1.0f, 0.0f);
                     break;
@@ -161,7 +152,7 @@ public class GameController : MonoBehaviour
                 break;
         }
 
-        if (gameGrid.CheckHasOverlapAtPos(currentTetromino.GetComponent<Tetromino>(), deltaPos) != CollisionTarget.None)
+        if (gameGrid.CheckHasOverlapAtPos(deltaPos) != CollisionTarget.None)
         {
             // Check if tetromino hits the ground.
             if (direction == MoveDirection.Down)
@@ -174,7 +165,7 @@ public class GameController : MonoBehaviour
                     PlayLineClearedSound(numOfFullRows);
 
                 if (gameGrid.IsTetrominoAboveBoard())
-                    GameOver();
+                    GameManager.GetInstance().GameOver();
 
                 ClearEmptyTetrominos(); // After deleting minos there may be empty tetrominos.
             }
@@ -196,8 +187,6 @@ public class GameController : MonoBehaviour
 
     public void StartNewGame()
     {
-        isGameOver = false;
-        gameOver_UIPanel.SetActive(false);
         audioSource.Play();
 
         gameGrid.InitGrid();
@@ -212,12 +201,10 @@ public class GameController : MonoBehaviour
         tetrominoMoveDownCoroutine = StartCoroutine(TetrominoMoveDown());
     }
 
-    void GameOver()
+    public void GameOver()
     {
         StopAllCoroutines();
 
-        isGameOver = true;
-        gameOver_UIPanel.SetActive(true);
         audioSource.Stop();
         audioSource.PlayOneShot(gameOverSound);
     }
@@ -244,13 +231,11 @@ public class GameController : MonoBehaviour
             }
         }
     }
-
-    public bool IsGameOver() { return isGameOver; }
-
+    
     public static Vector3 Round(Vector3 vec)
     {
         return new Vector3((int)(vec.x), (int)(vec.y), (int)(vec.z));
     }
 
-    public static GameController GetInstance() { return instance; }
+    public static TetrisGame GetInstance() { return instance; }
 }

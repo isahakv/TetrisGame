@@ -29,7 +29,7 @@ public class GameGrid : MonoBehaviour
 
         foreach (GameObject mino in minos)
         {
-            Vector3 pos = GameController.Round(mino.transform.position);
+            Vector3 pos = TetrisGame.Round(mino.transform.position);
             // check the height.
             if (pos.y < gridHeight)
                 grid[(int)pos.y, (int)pos.x] = mino.transform;
@@ -41,10 +41,10 @@ public class GameGrid : MonoBehaviour
         this.currentTetromino = currTetromino;
     }
 
-    public CollisionTarget CheckHasOverlapAtPos(Tetromino currentTetromino, Vector2 deltaPos)
+    public CollisionTarget CheckHasOverlapAtPos(Vector2 deltaPos)
     {
         Vector3 delta = new Vector3(deltaPos.x, deltaPos.y, 0.0f);
-        GameObject[] minos = currentTetromino.GetComponent<Tetromino>().minos;
+        GameObject[] minos = currentTetromino.minos;
         foreach (GameObject mino in minos)
         {
             Vector3 newPos = mino.transform.position + delta;
