@@ -8,43 +8,94 @@ public class GameManager : MonoBehaviour
 
     private string playerName = "";
     private int score = 0, highScore = 0;
-    bool isGameOver = false;
 
     void Awake()
     {
         instance = this;
+        // Initializing Game Manager.
+        Init();
     }
 
-    void Start()
+	void Start()
+	{
+		// Starting the Game.
+		StartGame();
+	}
+
+	void Init()
     {
-        StartGame();
+        playerName = PlayerPrefs.GetString("name");
+		highScore = PlayerPrefs.GetInt("highscore");
+		// Initializing UI Manager.
+		UIManager.GetInstance().Init(playerName, highScore);
+	}
+
+    void Update()
+    {
+        UpdateTime();    
     }
 
     public void StartGame()
     {
-        isGameOver = false;
+		score = 0;
+		Time.timeScale = 1.0f;
+
+        InputController.EnableInput();
         UIManager.GetInstance().HideGameOverPanel();
-        TetrisGame.GetInstance().StartNewGame();
+		UIManager.GetInstance().UpdateScoreText(score);
+		TetrisGame.GetInstance().StartNewGame();
     }
 
-    public void GameOver()
+	public void GameOver()
+	{
+		Time.timeScale = 0.0f;
+
+		InputController.DisableInput();
+		UIManager.GetInstance().ShowGameOverPanel();
+		TetrisGame.GetInstance().GameOver();
+	}
+
+	public void PauseGame()
+	{
+		Time.timeScale = 0.0f;
+		TetrisGame.GetInstance().PauseGame();
+        InputController.DisableInput();
+    }
+
+    public void ResumeGame()
     {
-        isGameOver = true;
-        UIManager.GetInstance().ShowGameOverPanel();
-        TetrisGame.GetInstance().GameOver();
+		Time.timeScale = 1.0f;
+		TetrisGame.GetInstance().ResumeGame();
+        InputController.EnableInput();
     }
-
-    public bool IsGameOver() { return isGameOver; }
-
-    void AddScore()
+	
+    public void AddScore(int _score)
     {
-
+        score += _score;
+        if (score > highScore)
+        {
+            highScore = score;
+			PlayerPrefs.SetInt("highscore", highScore);
+			PlayerPrefs.Save();
+			UIManager.GetInstance().UpdateHighScoreText(highScore);
+        }
+		UIManager.GetInstance().UpdateScoreText(score);
     }
 
+    void UpdateTime()
+    {
+        int time = (int)Mathf.Floor(Time.time);
+        int sec = (time % 3600) % 60, min = (time % 3600) / 60, hour = time / 3600;
+
+        UIManager.GetInstance().UpdateTimeText(sec, min, hour);
+    }
+    
     public static void NewPlayer(string name)
     {
         PlayerPrefs.SetString("name", name);
-    }
+		PlayerPrefs.SetInt("highscore", 0);
+		PlayerPrefs.Save();
+	}
 
     public static GameManager GetInstance() { return instance; }
 }

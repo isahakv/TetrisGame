@@ -133,6 +133,6 @@ public class GameGrid : MonoBehaviour
 
     public Vector3 GetTetrominoSpawnPos(bool isCurrentTetromino = true)
     {
-        return isCurrentTetromino ? new Vector3(gridWidth / 2, gridHeight, 0) : new Vector3(15.0f, 11.0f, 0.0f);
+        return isCurrentTetromino ? new Vector3(gridWidth / 2, gridHeight, 0) : new Vector3(14.0f, 11.0f, 0.0f);
     }
 }

@@ -164,6 +164,9 @@ public class TetrisGame : MonoBehaviour
                 else                    // Else play line clear sound.
                     PlayLineClearedSound(numOfFullRows);
 
+				// Score player.
+				GameManager.GetInstance().AddScore(20 + numOfFullRows * 50); // NOTE: Add dependency for time.
+
                 if (gameGrid.IsTetrominoAboveBoard())
                     GameManager.GetInstance().GameOver();
 
@@ -199,6 +202,16 @@ public class TetrisGame : MonoBehaviour
 
         SpawnNextTetromino();
         tetrominoMoveDownCoroutine = StartCoroutine(TetrominoMoveDown());
+    }
+
+    public void PauseGame()
+    {
+        audioSource.Pause();
+    }
+
+    public void ResumeGame()
+    {
+        audioSource.UnPause();
     }
 
     public void GameOver()

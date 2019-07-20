@@ -11,12 +11,23 @@ public class InputController : MonoBehaviour
     public float KeyPressedDelay = 0.5f;
 
     Coroutine continousMoveCorountine = null;
+    static bool isInputEnabled = true;
 
     // Update is called once per frame
     void Update()
     {
-        if (!GameManager.GetInstance().IsGameOver())
-            GetPlayerInput();
+        if (isInputEnabled)
+            GetPlayerInput(); // NOTE: Make this IEnumerator.
+    }
+
+    public static void EnableInput()
+    {
+        isInputEnabled = true;
+    }
+
+    public static void DisableInput()
+    {
+        isInputEnabled = false;
     }
 
     void GetPlayerInput()
@@ -34,13 +45,9 @@ public class InputController : MonoBehaviour
         }
 
         if (Input.GetKeyDown(KeyCode.W)) // Rotating Tetromino.
-        {
             TetrisGame.GetInstance().RotateTetromino();
-        }
         else if (Input.GetKeyDown(KeyCode.S)) // Moving Tetromino to down.
-        {
             TetrisGame.GetInstance().DownKeyPressed();
-        }
     }
 
     IEnumerator ContinousMove(bool isLeft)
