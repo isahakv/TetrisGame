@@ -58,15 +58,15 @@ public class GameManager : MonoBehaviour
 	public void PauseGame()
 	{
 		Time.timeScale = 0.0f;
+		InputController.DisableInput();
 		TetrisGame.GetInstance().PauseGame();
-        InputController.DisableInput();
     }
 
     public void ResumeGame()
     {
 		Time.timeScale = 1.0f;
+		InputController.EnableInput();
 		TetrisGame.GetInstance().ResumeGame();
-        InputController.EnableInput();
     }
 	
     public void AddScore(int _score)

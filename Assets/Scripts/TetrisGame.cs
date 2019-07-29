@@ -29,13 +29,16 @@ public class TetrisGame : MonoBehaviour
     private AudioSource audioSource;
     private List<GameObject> spawnedTetrominos = new List<GameObject>();
     private GameObject currentTetromino, nextTetromino;
-    public GameGrid gameGrid;
+    private GameGrid gameGrid;
     
     Coroutine tetrominoMoveDownCoroutine = null;
     bool isDownKeyPressed = false;
-    
-    public float moveDownTime = 1.0f, moveDownPressedTime = 0.05f;
-    public GameObject[] tetrominoPrefabs;
+
+	public int gridWidth = 10, gridHeight = 20; // NOTE: Make this changable.
+	public float moveDownTime = 1.0f, moveDownPressedTime = 0.05f;
+	public Vector2 nextTetrominoSpawnPos = new Vector3(14.0f, 11.0f, 0.0f);
+
+	public GameObject[] tetrominoPrefabs;
 
     public AudioClip gameOverSound, lineClearSingleSound, lineClearDoubleSound, lineClearTripleSound;
 
@@ -43,9 +46,8 @@ public class TetrisGame : MonoBehaviour
     {
         instance = this;
         audioSource = GetComponent<AudioSource>();
+		gameGrid = new GameGrid(gridWidth, gridHeight);
     }
-
-    public Tetromino GetCurrTetromino() { return currentTetromino.GetComponent<Tetromino>(); }
 
     IEnumerator TetrominoMoveDown()
     {
@@ -75,8 +77,11 @@ public class TetrisGame : MonoBehaviour
         while (true)
         {
             CollisionTarget overlapedObject = gameGrid.CheckHasOverlapAtPos(Vector2.zero);
-            if (overlapedObject == CollisionTarget.None)
-                return;
+			if (overlapedObject == CollisionTarget.None)
+			{
+				gameGrid.UpdateGrid();
+				return;
+			}
 
             switch (overlapedObject)
             {
@@ -122,16 +127,17 @@ public class TetrisGame : MonoBehaviour
         else
         {
             currentTetromino = nextTetromino;
-            currentTetromino.transform.position = gameGrid.GetTetrominoSpawnPos();            
-        }
+            currentTetromino.transform.position = gameGrid.GetTetrominoSpawnPos();
+			currentTetromino.transform.localScale = new Vector3(1.0f, 1.0f);
+		}
         spawnedTetrominos.Add(currentTetromino);
-        gameGrid.SetCurrentTetromin(currentTetromino.GetComponent<Tetromino>());
+        gameGrid.SetCurrentTetromino(currentTetromino.GetComponent<Tetromino>());
 
         index = Random.Range(0, tetrominoPrefabs.Length);
-        nextTetromino = Instantiate(tetrominoPrefabs[index], gameGrid.GetTetrominoSpawnPos(false), Quaternion.identity);
-        
-        HandleTetrominoOverlap();
-        gameGrid.UpdateGrid();
+        nextTetromino = Instantiate(tetrominoPrefabs[index], nextTetrominoSpawnPos, Quaternion.identity);
+		nextTetromino.transform.localScale = new Vector3(0.5f, 0.5f);
+
+		HandleTetrominoOverlap();
 
         isDownKeyPressed = false;
     }
@@ -162,15 +168,17 @@ public class TetrisGame : MonoBehaviour
                 if (numOfFullRows == 0) // If haven't Full Rows then play tetromino land sound.
                     currentTetromino.GetComponent<Tetromino>().OnLanded();
                 else                    // Else play line clear sound.
-                    PlayLineClearedSound(numOfFullRows);
+				{
+					PlayLineClearedSound(numOfFullRows);
+					// After deleting minos there may be empty tetrominos.
+					ClearEmptyTetrominos();
+				}
 
 				// Score player.
 				GameManager.GetInstance().AddScore(20 + numOfFullRows * 50); // NOTE: Add dependency for time.
 
                 if (gameGrid.IsTetrominoAboveBoard())
                     GameManager.GetInstance().GameOver();
-
-                ClearEmptyTetrominos(); // After deleting minos there may be empty tetrominos.
             }
 
             return;
@@ -184,8 +192,6 @@ public class TetrisGame : MonoBehaviour
     {
         currentTetromino.GetComponent<Tetromino>().Rotate();
         HandleTetrominoOverlap();
-
-        gameGrid.UpdateGrid();
     }
 
     public void StartNewGame()

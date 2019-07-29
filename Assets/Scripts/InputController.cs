@@ -6,18 +6,22 @@ using TetrisGameEnums;
 
 public class InputController : MonoBehaviour
 {
-    // public float continousMoveTimer = 0.0f;
     public float continousMoveTime = 0.5f;
-    public float KeyPressedDelay = 0.5f;
+    public float keyPressedDelay = 0.5f;
+	public float swipeThreshold = 150.0f;
 
     Coroutine continousMoveCorountine = null;
     static bool isInputEnabled = true;
+
+	// Touch input.
+	public bool isDraging = false;
+	Vector2 swipeStart, swipeDelta;
 
     // Update is called once per frame
     void Update()
     {
         if (isInputEnabled)
-            GetPlayerInput(); // NOTE: Make this IEnumerator.
+            GetPlayerInput();
     }
 
     public static void EnableInput()
@@ -32,7 +36,8 @@ public class InputController : MonoBehaviour
 
     void GetPlayerInput()
     {
-        if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
+ #if UNITY_STANDALONE || UNITY_EDITOR
+		if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
         {
             StopCoroutine(continousMoveCorountine);
             continousMoveCorountine = null;
@@ -48,9 +53,95 @@ public class InputController : MonoBehaviour
             TetrisGame.GetInstance().RotateTetromino();
         else if (Input.GetKeyDown(KeyCode.S)) // Moving Tetromino to down.
             TetrisGame.GetInstance().DownKeyPressed();
-    }
 
-    IEnumerator ContinousMove(bool isLeft)
+		// Mouse Input.
+		if (Input.GetMouseButtonDown(0))
+		{
+			swipeStart = Input.mousePosition;
+		}
+		else if (Input.GetMouseButtonUp(0))
+		{
+			if (!isDraging)
+				TetrisGame.GetInstance().RotateTetromino();
+			else
+				isDraging = false;
+		}
+		if (Input.GetMouseButton(0))
+		{
+			// Calculate the distance.
+			swipeDelta = (Vector2)Input.mousePosition - swipeStart;
+
+			// Did we cross the threshold?
+			if (swipeDelta.magnitude > swipeThreshold)
+			{
+				isDraging = true;
+				// Which direction?
+				if (Mathf.Abs(swipeDelta.x) > Mathf.Abs(swipeDelta.y))
+				{
+					// Left or Right.
+					if (swipeDelta.x > 0)
+						TetrisGame.GetInstance().MoveTetromino(MoveDirection.Right);
+					else
+						TetrisGame.GetInstance().MoveTetromino(MoveDirection.Left);
+				}
+				else
+				{
+					// Up or Down.
+					if (swipeDelta.y < 0)
+						TetrisGame.GetInstance().DownKeyPressed();
+				}
+
+				swipeStart += swipeDelta;
+				swipeDelta = Vector2.zero;
+			}
+		}
+#endif
+		if (Input.touches.Length > 0)
+		{
+			if (Input.touches.Length > 0)
+			{
+				if (Input.touches[0].phase == TouchPhase.Began)
+				{
+					swipeStart = Input.touches[0].position;
+				}
+				else if (Input.touches[0].phase == TouchPhase.Ended || Input.touches[0].phase == TouchPhase.Canceled)
+				{
+					if (!isDraging)
+						TetrisGame.GetInstance().RotateTetromino();
+					else
+						isDraging = false;
+				}
+			}
+			// Calculate the distance.
+			swipeDelta = Input.touches[0].position - swipeStart;
+			
+			// Did we cross the threshold?
+			if (swipeDelta.magnitude > swipeThreshold)
+			{
+				isDraging = true;
+				// Which direction?
+				if (Mathf.Abs(swipeDelta.x) > Mathf.Abs(swipeDelta.y))
+				{
+					// Left or Right.
+					if (swipeDelta.x > 0)
+						TetrisGame.GetInstance().MoveTetromino(MoveDirection.Right);
+					else
+						TetrisGame.GetInstance().MoveTetromino(MoveDirection.Left);
+				}
+				else
+				{
+					// Up or Down.
+					if (swipeDelta.y < 0)
+						TetrisGame.GetInstance().DownKeyPressed();
+				}
+
+				swipeStart += swipeDelta;
+				swipeDelta = Vector2.zero;
+			}
+		}
+	}
+
+	IEnumerator ContinousMove(bool isLeft)
     {
         while (true)
         {

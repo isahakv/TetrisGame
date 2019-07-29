@@ -4,11 +4,18 @@ using UnityEngine;
 
 using TetrisGameEnums;
 
-public class GameGrid : MonoBehaviour
+public class GameGrid
 {
-    public const int gridWidth = 10, gridHeight = 20; // NOTE: Make this changable.
+	private int gridWidth = 10, gridHeight = 20;
     private Transform[,] grid;
     private Tetromino currentTetromino;
+
+	public GameGrid(int _gridWith, int _gridHeight)
+	{
+		gridWidth = _gridWith;
+		gridHeight = _gridHeight;
+		InitGrid();
+	}
 
     public void InitGrid()
     {
@@ -36,9 +43,9 @@ public class GameGrid : MonoBehaviour
         }
     }
 
-    public void SetCurrentTetromin(Tetromino currTetromino)
+    public void SetCurrentTetromino(Tetromino currTetromino)
     {
-        this.currentTetromino = currTetromino;
+        currentTetromino = currTetromino;
     }
 
     public CollisionTarget CheckHasOverlapAtPos(Vector2 deltaPos)
@@ -50,10 +57,10 @@ public class GameGrid : MonoBehaviour
             Vector3 newPos = mino.transform.position + delta;
             if (newPos.x < 0) // Checking board out of bounce.
                 return CollisionTarget.GridLeft;
-            else if (newPos.x >= gridWidth)
-                return CollisionTarget.GridRight;
-            else if (newPos.y < 0)
-                return CollisionTarget.GridDown;
+            else if (newPos.x >= gridWidth) // Checking board out of bounce.
+				return CollisionTarget.GridRight;
+            else if (newPos.y < 0) // Checking board out of bounce.
+				return CollisionTarget.GridDown;
             else if ((int)newPos.y < gridHeight && grid[(int)newPos.y, (int)newPos.x] != null
                 && grid[(int)newPos.y, (int)newPos.x].parent != mino.transform.parent) // Check if not null and not the same mino.
                 return CollisionTarget.Mino;
@@ -94,7 +101,7 @@ public class GameGrid : MonoBehaviour
     {
         for (int x = 0; x < gridWidth; x++)
         {
-            Destroy(grid[y, x].gameObject);
+			Object.Destroy(grid[y, x].gameObject);
             grid[y, x] = null;
         }
 
@@ -131,8 +138,8 @@ public class GameGrid : MonoBehaviour
         return false;
     }
 
-    public Vector3 GetTetrominoSpawnPos(bool isCurrentTetromino = true)
+    public Vector3 GetTetrominoSpawnPos()
     {
-        return isCurrentTetromino ? new Vector3(gridWidth / 2, gridHeight, 0) : new Vector3(14.0f, 11.0f, 0.0f);
+        return new Vector3(gridWidth / 2, gridHeight, 0);
     }
 }

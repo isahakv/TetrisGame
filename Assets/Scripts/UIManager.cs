@@ -9,7 +9,7 @@ public class UIManager : MonoBehaviour
     private static UIManager instance;
 
     public Text playerNameText, timeText, scoreText, highScoreText;
-    public GameObject inGameMenu_Panel, gameOver_UIPanel;
+	public GameObject pauseButton, inGameMenu_Panel, gameOver_UIPanel;
     
     void Awake()
     {
@@ -50,17 +50,19 @@ public class UIManager : MonoBehaviour
     {
         GameManager.GetInstance().PauseGame();
         inGameMenu_Panel.SetActive(true);
-    }
+		pauseButton.SetActive(false);
+	}
 
-    public void ReturnMainMenuButton_Pressed()
+	public void ContinueButton_Pressed()
+	{
+		GameManager.GetInstance().ResumeGame();
+		inGameMenu_Panel.SetActive(false);
+		pauseButton.SetActive(true);
+	}
+
+	public void ReturnMainMenuButton_Pressed()
     {
         SceneManager.LoadScene("MainMenu");
-    }
-
-    public void ContinueButton_Pressed()
-    {
-        GameManager.GetInstance().ResumeGame();
-        inGameMenu_Panel.SetActive(false);
     }
     /** End InGame Menu */
 
