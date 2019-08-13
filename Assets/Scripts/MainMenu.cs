@@ -10,11 +10,10 @@ public class MainMenu : MonoBehaviour
     {
         MainMenu,
         SettingsMenu,
-        PlayerNameInputMenu
+        ScoreBoardMenu
     }
 
-    public GameObject mainMenu_Panel, playerLogin_Panel, settings_Panel;
-	public InputField playerEmailInput_Panel, playerPasswordInput_Panel;
+    public GameObject mainMenu_Panel, settings_Panel, scoreBoard_Panel;
 
 	MenuState currentState = MenuState.MainMenu;
 
@@ -30,7 +29,13 @@ public class MainMenu : MonoBehaviour
         settings_Panel.SetActive(true);
     }
 
-    public void ExitButton_Pressed()
+	public void ScoreBoardButton_Pressed()
+	{
+		currentState = MenuState.ScoreBoardMenu;
+		mainMenu_Panel.SetActive(false);
+		scoreBoard_Panel.SetActive(true);
+	}
+	public void ExitButton_Pressed()
     {
         Application.Quit();
     }
@@ -39,10 +44,10 @@ public class MainMenu : MonoBehaviour
     {
         switch(currentState)
         {
-            case MenuState.PlayerNameInputMenu:
+            case MenuState.ScoreBoardMenu:
                 currentState = MenuState.MainMenu;
                 mainMenu_Panel.SetActive(true);
-				playerLogin_Panel.SetActive(false);
+				scoreBoard_Panel.SetActive(false);
                 break;
             case MenuState.SettingsMenu:
                 currentState = MenuState.MainMenu;
@@ -74,14 +79,8 @@ public class MainMenu : MonoBehaviour
 	{
 		UserAuth.Get().SignInAnonymously();
 	}
-
 	public void SignOut()
 	{
 		UserAuth.Get().SignOut();
-	}
-
-	public void PopupTestButton_Pressed()
-	{
-		UserDatabase.Get().SyncUserHighscore();
 	}
 }
