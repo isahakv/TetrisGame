@@ -6,8 +6,8 @@ public class GameManager : MonoBehaviour
 {
     private static GameManager instance;
 
-    private string playerName = "";
     private int score = 0, highScore = 0;
+	private bool isHighscoreBitten = false;
 
     void Awake()
     {
@@ -24,10 +24,9 @@ public class GameManager : MonoBehaviour
 
 	void Init()
     {
-        playerName = PlayerPrefs.GetString("name");
-		highScore = PlayerPrefs.GetInt("highscore");
+		highScore = PlayerPrefs.GetInt("highscore", 0);
 		// Initializing UI Manager.
-		UIManager.GetInstance().Init(playerName, highScore);
+		UIManager.GetInstance().Init(UserAuth.GetUserName(), highScore);
 	}
 
     void Update()
@@ -53,6 +52,12 @@ public class GameManager : MonoBehaviour
 		InputController.DisableInput();
 		UIManager.GetInstance().ShowGameOverPanel();
 		TetrisGame.GetInstance().GameOver();
+		// Post highscore to database.
+		if (isHighscoreBitten)
+		{
+			isHighscoreBitten = false;
+			UserDatabase.Get().SyncUserHighscore();
+		}
 	}
 
 	public void PauseGame()
@@ -74,7 +79,8 @@ public class GameManager : MonoBehaviour
         score += _score;
         if (score > highScore)
         {
-            highScore = score;
+			isHighscoreBitten = true;
+			highScore = score;
 			PlayerPrefs.SetInt("highscore", highScore);
 			PlayerPrefs.Save();
 			UIManager.GetInstance().UpdateHighScoreText(highScore);
@@ -90,12 +96,5 @@ public class GameManager : MonoBehaviour
         UIManager.GetInstance().UpdateTimeText(sec, min, hour);
     }
     
-    public static void NewPlayer(string name)
-    {
-        PlayerPrefs.SetString("name", name);
-		PlayerPrefs.SetInt("highscore", 0);
-		PlayerPrefs.Save();
-	}
-
     public static GameManager GetInstance() { return instance; }
 }

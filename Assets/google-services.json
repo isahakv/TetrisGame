@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "814756471280",
+    "firebase_url": "https://tetrisgame-2019.firebaseio.com",
+    "project_id": "tetrisgame-2019",
+    "storage_bucket": "tetrisgame-2019.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814756471280:android:1884fa31f232d819",
+        "android_client_info": {
+          "package_name": "com.Gradius.Tetris"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "814756471280-7830ltalve4pd2a68ue15s6hnri1nd1m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Gradius.Tetris",
+            "certificate_hash": "c071b1fb99bcae57e614bdfc7c462bf32abf182c"
+          }
+        },
+        {
+          "client_id": "814756471280-m1mecq40nremh4uuc6dn8lnfv05curqb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIPzSSuT9gIwI0Fht42r0GScT9O9vBMiE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "814756471280-t2logvkl2g7kvdj6fpkvv9nnt8gi7set.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
