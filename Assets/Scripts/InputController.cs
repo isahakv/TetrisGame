@@ -20,7 +20,8 @@ public class InputController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isInputEnabled)
+		Vector2 mouse = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+		if (isInputEnabled && GameManager.IsPointInGrid(mouse))
             GetPlayerInput();
     }
 

@@ -70,9 +70,9 @@ public class GameManager : MonoBehaviour
     public void ResumeGame()
     {
 		Time.timeScale = 1.0f;
-		InputController.EnableInput();
 		TetrisGame.GetInstance().ResumeGame();
-    }
+		InputController.EnableInput();
+	}
 	
     public void AddScore(int _score)
     {
@@ -95,6 +95,12 @@ public class GameManager : MonoBehaviour
 
         UIManager.GetInstance().UpdateTimeText(sec, min, hour);
     }
-    
-    public static GameManager GetInstance() { return instance; }
+
+	public static bool IsPointInGrid(Vector2 screenPoint)
+	{
+		Ray ray = Camera.main.ScreenPointToRay(screenPoint);
+		return Physics.Raycast(ray, 15f);
+	}
+
+	public static GameManager GetInstance() { return instance; }
 }

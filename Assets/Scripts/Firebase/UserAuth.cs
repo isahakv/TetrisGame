@@ -183,10 +183,6 @@ public class UserAuth : MonoBehaviour
 
 	private void SignInFirebase(string accessToken)
 	{
-		Debug.Log("Pass 100!");
-		// auth = FirebaseAuth.DefaultInstance;
-		// auth.StateChanged += AuthStateChanged;
-
 		Credential credential = FacebookAuthProvider.GetCredential(accessToken);
 		Task<FirebaseUser> userTask = auth.SignInWithCredentialAsync(credential);
 		if (userTask != null)
@@ -241,7 +237,6 @@ public class UserAuth : MonoBehaviour
 
 	public void SignOut()
 	{
-		PopupManager.Get().NewMessage(PopupType.Info, null, "If you Sign Out your local stats will be TERMINATIED!");
 		FB.LogOut();
 		GetAuth().SignOut();
 	}

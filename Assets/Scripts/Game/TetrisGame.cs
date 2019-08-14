@@ -225,7 +225,7 @@ public class TetrisGame : MonoBehaviour
         StopAllCoroutines();
 
         audioSource.Stop();
-        audioSource.PlayOneShot(gameOverSound);
+        audioSource.PlayOneShot(gameOverSound, 3.0f);
     }
 
     void ClearEmptyTetrominos()
@@ -250,7 +250,7 @@ public class TetrisGame : MonoBehaviour
             }
         }
     }
-    
+
     public static Vector3 Round(Vector3 vec)
     {
         return new Vector3((int)(vec.x), (int)(vec.y), (int)(vec.z));

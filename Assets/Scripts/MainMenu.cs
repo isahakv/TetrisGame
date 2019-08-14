@@ -59,8 +59,14 @@ public class MainMenu : MonoBehaviour
 
     public void ResetStatsButton_Pressed()
     {
-        PlayerPrefs.DeleteAll();
-		UserDatabase.Get().PostUserHighScore(0).ContinueWith(task => { });
+		PopupManager.Get().NewQuestion(PopupType.Warning, "", "Reset Your Local and Server Stats?",(PopupQuestionResult result) =>
+		{
+			if (result == PopupQuestionResult.Accept)
+			{
+				PlayerPrefs.DeleteAll();
+				StartCoroutine(TaskExtension.YieldWait(UserDatabase.Get().PostUserHighScore(0)));
+			}
+		});
 	}
 
 	public Text googleSignIn_Text;
@@ -81,6 +87,16 @@ public class MainMenu : MonoBehaviour
 	}
 	public void SignOut()
 	{
-		UserAuth.Get().SignOut();
+		if (!UserAuth.IsUserLoggedIn())
+		{
+			PopupManager.Get().NewMessage(PopupType.Error, "", "You are not Logged-in!");
+			return;
+		}
+
+		PopupManager.Get().NewQuestion(PopupType.Warning, null, "If you Sign Out your local stats will be TERMINATIED!", (PopupQuestionResult result) =>
+		{
+			if (result == PopupQuestionResult.Accept)
+				UserAuth.Get().SignOut();
+		});
 	}
 }
